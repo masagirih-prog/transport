@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UrbanLife — Transportation Planner</title>
+  <style>
+    :root{--bg:#f4f6fb;--card:#ffffff;--muted:#6b7280;--accent:#1f6feb;--success:#16a34a}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:var(--bg);color:#111}
+    header{background:linear-gradient(90deg,#0b63d6 0%,#1f6feb 100%);color:#fff;padding:18px 20px;display:flex;align-items:center;gap:16px}
+    header h1{margin:0;font-size:18px}
+    .wrap{display:grid;grid-template-columns:320px 1fr;gap:18px;padding:18px;max-width:1100px;margin:18px auto}
+    .card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(12,20,40,0.06)}
+    .sidebar .card{margin-bottom:12px}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input[type=text],select,input[type=number]{width:100%;padding:8px 10px;border-radius:8px;border:1px solid #e6e9ef}
+    .modes{display:flex;gap:8px;flex-wrap:wrap}
+    .mode{padding:8px 10px;border-radius:8px;border:1px solid #e6e9ef;cursor:pointer;font-size:13px}
+    .mode.active{background:#eef6ff;border-color:var(--accent);color:var(--accent);font-weight:600}
+    button{background:var(--accent);color:#fff;border:0;padding:10px 12px;border-radius:10px;cursor:pointer}
+    .small{font-size:13px}
+    .stats{display:flex;gap:10px;margin-top:10px}
+    .stat{flex:1;padding:10px;border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);text-align:center}
+    .map{height:320px;border-radius:10px;background:linear-gradient(180deg,#e9f0ff,#f8fbff);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+    .trips{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+    .trip{padding:10px;border-radius:10px;border:1px solid #eef2ff}
+    footer{max-width:1100px;margin:0 auto;padding:18px;color:var(--muted);font-size:13px}
+    @media(max-width:840px){.wrap{grid-template-columns:1fr}} 
+  </style>
+</head>
+<body>
+  <header>
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden><rect width="24" height="24" rx="6" fill="#ffffff22"/><path d="M4 12h4l2-6 4 12h2" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>UrbanLife — Transport & City Living</h1>
+  </header>
+
+  <main class="wrap">
+    <aside class="sidebar">
+      <div class="card">
+        <h3 style="margin:0 0 8px">Quick trip planner</h3>
+        <label for="from">From</label>
+        <input id="from" type="text" placeholder="e.g. MG Road" value="Central Station">
+        <label for="to">To</label>
+        <input id="to" type="text" placeholder="e.g. Airport" value="City Airport">
+        <label class="small">Choose mode</label>
+        <div class="modes" id="modes">
+          <div class="mode active" data-mode="public">Public Transport</div>
+          <div class="mode" data-mode="car">Car</div>
+          <div class="mode" data-mode="bike">Bike</div>
+          <div class="mode" data-mode="walk">Walk</div>
+          <div class="mode" data-mode="scooter">E-scooter</div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <button id="planBtn">Estimate</button>
+          <button id="saveBtn" style="background:#fff;color:var(--accent);border:1px solid #d6e7ff">Save</button>
+        </div>
+
+        <div class="stats" id="estimateBox" style="display:none">
+          <div class="stat"><div class="small">Time</div><div id="estTime">—</div></div>
+          <div class="stat"><div class="small">Cost</div><div id="estCost">—</div></div>
+          <div class="stat"><div class="small">CO₂</div><div id="estCO2">—</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px">Nearby services</h3>
+        <div class="small">Bike stations: <strong id="bikeCount">7</strong></div>
+        <div class="small">Charging points: <strong id="chargeCount">12</strong></div>
+        <div style="margin-top:8px"><button id="showNearby">Show on map</button></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px">Saved trips</h3>
+        <div id="savedList" class="small">No saved trips yet.</div>
+      </div>
+
+    </aside>
+
+    <section>
+      <div class="card">
+        <h3 style="margin:0 0 8px">City map & live view</h3>
+        <div class="map" id="map">Map placeholder — click "Show on map" or plan a trip</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3 style="margin:0 0 8px">Suggested trips & transit</h3>
+        <div class="trips" id="tripSuggestions">
+          <!-- JS will populate -->
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3 style="margin:0 0 8px">City tips for better urban living</h3>
+        <ul class="small">
+          <li>Use public transport during peak hours to reduce travel time and emissions.</li>
+          <li>Consider combining a bike or walking for last-mile connectivity.</li>
+          <li>Charge e-vehicles at designated hubs — avoid blocking fast-chargers for long periods.</li>
+          <li>Report hazards or blocked lanes using the in-app feedback (placeholder).</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built as an HTML/CSS/JS single-file demo. You can expand it with real maps (Leaflet/Mapbox) and live transit APIs.
+  </footer>
+
+  <script>
+    // Mock data and simple estimations. Replace with real APIs for production.
+    const modesEl = document.getElementById('modes');
+    const planBtn = document.getElementById('planBtn');
+    const estBox = document.getElementById('estimateBox');
+    const estTime = document.getElementById('estTime');
+    const estCost = document.getElementById('estCost');
+    const estCO2 = document.getElementById('estCO2');
+    const savedList = document.getElementById('savedList');
+    const tripSuggestions = document.getElementById('tripSuggestions');
+    const mapEl = document.getElementById('map');
+
+    let activeMode = 'public';
+    const modeNodes = Array.from(document.querySelectorAll('.mode'));
+    modeNodes.forEach(n=>n.addEventListener('click', ()=>{
+      modeNodes.forEach(x=>x.classList.remove('active'));
+      n.classList.add('active');
+      activeMode = n.dataset.mode;
+    }));
+
+    function simpleDistance(from,to){
+      // Mock: convert string similarity into km estimate
+      const a = (from||'').length, b=(to||'').length;
+      const base = Math.abs(a-b) + 5; // at least 5 km
+      return Math.min(40, Math.round(base + (Math.random()*5))); // 5-40 km
+    }
+
+    function estimate(from,to,mode){
+      const km = simpleDistance(from,to);
+      let time, cost, co2;
+      switch(mode){
+        case 'car': time = Math.round(km/35*60); cost = '₹' + Math.max(50, Math.round(km*12)); co2 = (km*200).toLocaleString() + ' g'; break;
+        case 'bike': time = Math.round(km/18*60); cost = '₹' + Math.round(km*2); co2 = (km*21).toLocaleString() + ' g'; break;
+        case 'walk': time = Math.round(km/5*60); cost = 'Free'; co2 = '0 g'; break;
+        case 'scooter': time = Math.round(km/20*60); cost = '₹' + Math.round(km*5); co2 = (km*40).toLocaleString() + ' g'; break;
+        default: // public
+          time = Math.round(km/30*60); cost = '₹' + Math.max(20, Math.round(km*3)); co2 = (km*50).toLocaleString() + ' g';
+      }
+      return {km,time,cost,co2};
+    }
+
+    planBtn.addEventListener('click', ()=>{
+      const from = document.getElementById('from').value.trim();
+      const to = document.getElementById('to').value.trim();
+      if(!from || !to){ alert('Enter both From and To'); return; }
+      const res = estimate(from,to,activeMode);
+      estBox.style.display = 'flex';
+      estTime.textContent = res.time + ' min';
+      estCost.textContent = res.cost;
+      estCO2.textContent = res.co2;
+      mapEl.textContent = `${from} → ${to} · ${res.km} km · ${activeMode}`;
+      addSuggestion(from,to,activeMode,res);
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', ()=>{
+      const from = document.getElementById('from').value.trim();
+      const to = document.getElementById('to').value.trim();
+      if(!from||!to){ alert('Enter both From and To'); return; }
+      const list = JSON.parse(localStorage.getItem('urban_saved')||'[]');
+      list.push({from,to,mode:activeMode,when:new Date().toISOString()});
+      localStorage.setItem('urban_saved', JSON.stringify(list));
+      renderSaved();
+    });
+
+    function renderSaved(){
+      const list = JSON.parse(localStorage.getItem('urban_saved')||'[]');
+      if(!list.length){ savedList.textContent = 'No saved trips yet.'; return; }
+      savedList.innerHTML = '';
+      list.slice().reverse().forEach((t,i)=>{
+        const el = document.createElement('div');
+        el.className='small';
+        el.style.padding='6px 0';
+        el.innerHTML = `<strong>${t.from}</strong> → ${t.to} <span style="color:var(--muted)">(${t.mode})</span> <button data-i="${i}" style="float:right;background:transparent;border:0;color:var(--accent);cursor:pointer">Use</button>`;
+        el.querySelector('button').addEventListener('click', ()=>{
+          document.getElementById('from').value = t.from; document.getElementById('to').value = t.to;
+        });
+        savedList.appendChild(el);
+      });
+    }
+
+    function addSuggestion(from,to,mode,res){
+      const div = document.createElement('div');
+      div.className='trip';
+      div.innerHTML = `<strong>${from} → ${to}</strong><div class="small">Mode: ${mode} · ${res.km} km · ${res.time} min · ${res.cost} · ${res.co2}</div>`;
+      tripSuggestions.prepend(div);
+      // keep only 8
+      while(tripSuggestions.children.length>8) tripSuggestions.lastChild.remove();
+    }
+
+    document.getElementById('showNearby').addEventListener('click', ()=>{
+      mapEl.textContent = 'Showing nearby bike stations & charge points...';
+      setTimeout(()=>mapEl.textContent='Map placeholder — zoom to view stations',1200);
+    });
+
+    // Populate some sample suggestions
+    const samples = [
+      ['Central Station','City Mall','public'],['West End','Tech Park','bike'],['City Airport','Hotel Plaza','car'],['Old Town','Museum','walk']
+    ];
+    samples.forEach(s=>addSuggestion(s[0],s[1],s[2],estimate(s[0],s[1],s[2])));
+
+    // Load saved on start
+    renderSaved();
+
+  </script>
+</body>
+</html>
